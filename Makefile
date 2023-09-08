@@ -1,8 +1,8 @@
 # CXX Make variable for compiler
 
-# compiles the program into an executable named 'orgtree'
+# compiles the program into an executable named 'citydfs'
 # compile by typing 'make'
-# run the executable by typing './orgtree'
+# run the executable by typing './citydfs'
 # remove previously compiled files by typing 'make clean'
 # to ensure you are using your latest code when compiling
 
@@ -14,10 +14,10 @@ CXX=g++
 CXXFLAGS=-std=c++11 -Wall -g3 -c
 
 # object files
-OBJS = orgtree.o driver.o
+OBJS = connectedcities.o driver.o
 
 # Program name
-PROGRAM = orgtree
+PROGRAM = citydfs
 
 # Rules format:
 # target : dependency1 dependency2 ... dependencyN
@@ -32,8 +32,8 @@ $(PROGRAM) : $(OBJS)
 driver.o : driver.cpp
 	$(CXX) $(CXXFLAGS) driver.cpp
 
-promotedCarModelStack.o : orgtree.cpp orgtree.h
-	$(CXX) $(CXXFLAGS) orgtree.cpp
+connectedcities.o : connectedcities.cpp connectedcities.h
+	$(CXX) $(CXXFLAGS) connectedcities.cpp
 
 # clean all *.o files and executables
 clean:

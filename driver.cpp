@@ -2,10 +2,10 @@
  * Start of a driver file to test orgtree.cpp
  * CS 210 Fall 2022
  * @author Mitchell Shapiro <mshapiro6805@sdsu.edu>
- * @date Oct 2022
+ * @date Nov 2022
  */
 
-#include "orgtree.h"
+#include "connectedcities.h"
 
 #include <string>
 #include <vector>
@@ -25,7 +25,7 @@ using namespace std;
  * @param didPass - The test condition (true to pass, false to fail)
  * @param message - Description of what is being tested
  */
-void assert(bool didPass, string message) {
+void asserts(bool didPass, string message) {
     if (didPass) {
         cout << "Passed: " << message << endl;
     } else {
@@ -40,78 +40,101 @@ void assert(bool didPass, string message) {
 
 //TODO
 int main(int argc, char **argv) {
-    /*
-     * Construct the following organization chart for testing
-     *                1
-     *           /    \    \
-     *           2    3    4
-     *          / \  / \   \
-     *          5 6  7 8   9
-     *         /   \       \
-     *         10  11      12
-     */
-
-    Employee *head = new Employee(1, vector<int>{2, 3, 4});
-    Employee *e2 = head->getDirectReports().at(0);
-    Employee *e3 = head->getDirectReports().at(1);
-    Employee *e4 = head->getDirectReports().at(2);
-
-    e2->addDirectReports(vector<int>{5, 6});
-    e3->addDirectReports(vector<int>{7, 8});
-    e4->addDirectReport(9);
-
-    Employee *e5 = e2->getDirectReports().at(0);
-    Employee *e6 = e2->getDirectReports().at(1);
-    Employee *e9 = e4->getDirectReports().at(0);
-
-    e5->addDirectReport(10);
-    e6->addDirectReport(11);
-    e9->addDirectReport(12);
-
+    
     // Begin Testing
-    // A few sample testing code are provided below
+    // A few sample testing code are provided below  
     
-    // TODO Test all Orgtree functions
-    //      according to the specifications in the comment section ABOVE each function signature. 
+    /* Construct a graph for testing
+        *    SD ---> DL <--------         
+        *    ^                   |
+        *    |                   |
+        *    OD <--- JL <--------|--
+        *                        |  |
+        *    BV <---             |  |
+        *    --->  LA ---> BU    |  |
+        *          ^             |  |
+        *          |             |  |
+        *  SJ ---> SK ---> IV ---|  |
+        *                           |
+        *  <---------------         |
+        *  SF ---> HT ---> NH ------|
+        * */
+
+    vector<string> cities_1 {"SD", "LA", "SK", "IV", "JL", "SF", 
+                             "DL", "HT", "OD", "NH", "BV", "SJ", "BU"};
+
+    vector<pair<string, string>> trainRoutes;
+
+    trainRoutes.emplace_back("JL", "OD");
+    trainRoutes.emplace_back("OD", "SD");
+    trainRoutes.emplace_back("SD", "DL");
+    trainRoutes.emplace_back("BV", "LA");
+    trainRoutes.emplace_back("LA", "BV");
+    trainRoutes.emplace_back("LA", "BU");
+    trainRoutes.emplace_back("SK", "IV");
+    trainRoutes.emplace_back("SK", "LA");
+    trainRoutes.emplace_back("SJ", "SK");
+
+    trainRoutes.emplace_back("IV", "DL");
     
-    // IMPORTANT: You should also construct at least one different chart 
-    // Also make sure to check edge cases, such as empty chart, or one employee chart.
+    trainRoutes.emplace_back("SF", "HT");
+    trainRoutes.emplace_back("HT", "NH");
+    trainRoutes.emplace_back("NH", "SF");
+    trainRoutes.emplace_back("NH", "JL");
 
-    // Test isEmployeePresentInOrg function
-    bool employeePresent = Orgtree::isEmployeePresentInOrg(head, 6);
-    assert(employeePresent, "ID 6 Present in tree");
-    employeePresent = Orgtree::isEmployeePresentInOrg(head, -2);
-    assert(employeePresent == false, "ID -2 Not present in tree");
+    vector<CityNode> cities = ConnectedCities::citiesSortedByNumOf_Its_ReachableCities_byTrain(cities_1, trainRoutes);
 
-    //TODO...
+    //cities returned from the above call are sorted according to 
+    //the ascending order of the city names and 
+    //the descending order of the size of reachableCities starting from those cities
+    
+    asserts(cities.at(0).getCity() == "HT", "First city should be HT");
+    //Reachable cities from HT are [HT, NH, SF, JL, OD, SD, DL]
+    asserts(cities.at(0).getReachableCities().size() == 7, "Train starting from city HT can reach 7 cities"); 
+    
+    asserts(cities.at(1).getCity() == "NH", "Second city should be NH");
+    //Reachable cities from NH are [NH, SF, HT, JL, OD, SD, DL]
+    asserts(cities.at(1).getReachableCities().size() == 7, "Train starting from city NH can reach 7 cities");
+    
+    asserts(cities.at(2).getCity() == "SF", "Third city should be SF");
+    //Reachable cities from SF are [SF, HT, NH, JL, OD, SD, DL]
+    asserts(cities.at(2).getReachableCities().size() == 7, "Train starting from city SF can reach 7 cities");
+    
+    asserts(cities.at(3).getCity() == "SJ", "Fourth city should be SJ");
+    //Reachable cities from SJ are [SJ, SK, IV, DL, LA, BV, BU]
+    asserts(cities.at(3).getReachableCities().size() == 7, "Train starting from city SJ can reach 7 cities");
 
-    // Test findEmployeeLevel function
-    int employeeLevel = Orgtree::findEmployeeLevel(head, 4, 0);
-    assert(employeeLevel == 1, "Level of ID 4 returns " + to_string(employeeLevel) + ", expected 1");
+    asserts(cities.at(4).getCity() == "SK", "Fifth city should be SK");
+    //Reachable cities from SK are [SK, IV, DL, LA, BV, BU]
+    asserts(cities.at(4).getReachableCities().size() == 6, "Train starting from city SK can reach 6 cities");
+    
+    asserts(cities.at(5).getCity() == "JL", "Sixth city should be JL");
+    //Reachable cities from JL are [JL, OD, SD, DL]
+    asserts(cities.at(5).getReachableCities().size() == 4, "Train starting from city JL can reach 4 cities");
+    
+    asserts(cities.at(6).getCity() == "BV", "Seventh city should be BV");
+    //Reachable cities from BV are [BV, LA, BU]
+    asserts(cities.at(6).getReachableCities().size() == 3, "Train starting from city BV can reach 3 cities");
+        
+    asserts(cities.at(7).getCity() == "LA", "Eighth city should be LA");
+    //Reachable cities from LA are [LA, BV, BU]
+    asserts(cities.at(7).getReachableCities().size() == 3, "Train starting from city LA can reach 3 cities");
 
-    //TODO...
+    asserts(cities.at(8).getCity() == "OD", "Ninth city should be OD");
+    //Reachable cities from OD are [OD, SD, DL]
+    asserts(cities.at(8).getReachableCities().size() == 3, "Train starting from city OD can reach 3 cities");
 
-    // Test findClosestSharedManager function
-    // Call the function with certain combination of the arguments
-    // Assert / verify the returned Employee* has the expected Employee ID
+    asserts(cities.at(11).getCity() == "BU", "Twelfth city should be BU");
+    //Reachable cities from BU are [BU]
+    asserts(cities.at(11).getReachableCities().size() == 1, "Train starting from city BU can reach 1 city");
 
-    //TODO...
-
-    // Test findNumOfManagersBetween function
-    int numManagers = Orgtree::findNumOfManagersBetween(head, 10, 11);
-    assert(numManagers == 3, "Managers between 10 and 11 returns " + to_string(numManagers) + ", expected 3");
-
-    // TODO numManagers = ...
-
-    // Test deleteOrgtree function
-    // VERY IMPORTANT: Related to valgrind memory leaking detection testing,
-    // You MUST call your deleteOrgtree function at the end of this driver testing code
-    // to delete all the allocated memory for the tree. 
-
-    Orgtree::deleteOrgtree(head);
-
-    // Use the printed employee ID along the sequence of deletion to verify your implementation
-    // This part will be autograded as well as manually inspected for grading
+    // IMPORTANT:
+    // TODO: write your own testing code similar to above as part of the coding required for assignment 4
+    
+    // IMPORTANT: You should construct at least one different city graph similar to the one above
+    //
+    // Also make sure to construct graphs for testing the edge cases, 
+    // such as empty graph (NO node), one node graph, two nodes graph, etc.
 
     cout << endl << "All test cases passed!" << endl;
 
